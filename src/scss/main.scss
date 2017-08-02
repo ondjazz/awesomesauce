@@ -1,0 +1,30 @@
+* {
+    margin: 0px;
+    padding: 0px;
+}
+
+body {
+    background-color: #cecece;
+}
+
+$cols: 12;
+
+@mixin cols($devider){
+    @for $i from 1 through $cols{
+        .col#{$devider}#{$i}{
+            width: 100% / $cols * $i;
+        }
+    }
+}
+
+@include cols('-');
+
+@media (min-width: 480px) {
+    @include cols('-s-');
+}
+
+@media (min-width: 768px) {
+    @include cols('-m-');
+}
+
+@import "typo"
