@@ -168,7 +168,7 @@ gulp.task('html', function(){
         .pipe(gulp.dest(options.source_folder+'/'));
 });
 
-// Churn deeze images, with changed
+// Churn deeze images, with changed, test
 gulp.task('rs-img', function () {
     var dest = options.source_folder+'/images';
 
