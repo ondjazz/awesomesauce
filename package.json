@@ -37,7 +37,8 @@
     "imager.js": "^0.5.0",
     "iphone-inline-video": "^2.0.2",
     "jquery-plugin-viewport-checker": "^1.8.3",
-    "pump": "^1.0.1"
+    "pump": "^1.0.1",
+    "chalk": "^2.0.0"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

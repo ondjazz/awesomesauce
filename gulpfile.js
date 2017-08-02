@@ -69,6 +69,8 @@ let options = {
             }, {
                 width: 320,
                 rename :  { suffix: '-320' },
+            }, {
+                width: 160,
             }
         ]
     },
@@ -112,7 +114,8 @@ const replace           = require('gulp-replace');
 
 // Gulp Utilities - Console log
 const gutil             = require('gulp-util');
-
+// Colors for gutil
+const chalk             = require('chalk');
 const htmlmin           = require('gulp-htmlmin');
 
 // Paths
@@ -121,7 +124,7 @@ let paths = {
     js: 'src/js/**/*',
     html: 'src/html/**/*',
     scale: 'src/scale/images/**/*',
-    images: 'src/images/'
+    images: options.source_folder+'/images/'
 };
 
 //--------------------------------------------------//
@@ -168,17 +171,17 @@ gulp.task('html', function(){
         .pipe(gulp.dest(options.source_folder+'/'));
 });
 
-// Churn deeze images, with changed, test
+// Churn deeze images
 gulp.task('rs-img', function () {
     var dest = options.source_folder+'/images';
 
     return gulp.src(paths.scale)
         // cachename can be anything, does not need to be rs-img
-        .pipe(changed('prod/images'))
+        .pipe(changed(paths.images))
         .pipe(responsive(options.images).on('error', function() {
             gutil.log('Responsive image error');
         }))
-        .pipe(gulp.dest('prod/images'))
+        .pipe(gulp.dest(paths.images))
 });
 
 
@@ -226,20 +229,62 @@ gulp.task('watch', function() {
     gulp.watch(paths.js, ['js']);
     gulp.watch(paths.scale, ['rs-img']);
     gulp.watch('src/**/*.html', ['html']);
-    // responsive img
 });
 
 // Default (when i gulp)
 gulp.task('img', ['rs-img']);
 
 // Clear production and distribution folder
-gulp.task('clear', function() {
+gulp.task('build:clear', function() {
     return gulpif(options.source_folder !== 'src', del([options.source_folder+'**/*', options.source_folder, options.destination_folder+'**/*', options.destination_folder]));
 });
 
-gulp.task('source', ['scss', 'js', 'html']);
-gulp.task('default', ['watch', 'source']);
-
+gulp.task('build:source', ['scss', 'js', 'html']);
+gulp.task('default', ['watch', 'build:source']);
 
 // Distribution task
-gulp.task('dist', ['default', 'dist_css', 'dist_html', 'dist_js']);
+gulp.task('build:dist', ['default', 'dist_css', 'dist_html', 'dist_js']);
+
+const green = chalk.green;
+const bold = chalk.bold.green;
+gulp.task('help', function () {
+    gutil.log(`
+
+
+                                                            _
+             /\\                                            | |
+            /  \\    __ _  _ __    ___    ___    __ _       | |  ___   _ __    __ _  ___
+           / /\\ \\  / _' || '_ \\  / _ \\  / _ \\  / _' |  _   | | / _ \\ | '_ \\  / _' |/ __|
+          / ____ \\| (_| || | | ||  __/ | (_) || (_| | | |__| || (_) || | | || (_| |\\__ \
+
+         /_/    \\_\\\\__, ||_| |_| \\___|  \\___/  \\__, |  \\____/  \\___/ |_| |_| \\__,_||___/
+                    __/ |                       __/ |
+                   |___/                       |___/
+
+
+
+    ${bold('build: [source|dist|clear]')}
+
+    ${green('$ gulp build:source')}
+        Build a production enviorment for the project.
+        Will not compress any files.
+        adds sourcemaps
+
+    ${green('$ gulp build:dist')}
+        Build a distribution enviorment for the project.
+        will compress all files, no sourcemaps
+
+    ${green('$ gulp build:clear')}
+        will delete both distribution and production enviorments.
+
+    ${bold('Single actions:')}
+
+    ${green('$ gulp rs-img')}
+        will compile compressed versions of all files under scale/images/**
+        works with jpg,png and gif
+
+    ${green('$ gulp img')}
+        Alias of rs-img
+    `);
+
+});
