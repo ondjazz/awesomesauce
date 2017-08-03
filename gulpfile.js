@@ -94,9 +94,6 @@ const responsive        = require('gulp-responsive');
 const imagemin          = require('gulp-imagemin');
 const changed           = require('gulp-changed');
 
-// Gulp cached and gulp remember for Incremental rebuilding
-const cached            = require('gulp-cached');
-
 const sass              = require('gulp-sass');
 const postcss           = require('gulp-postcss');
 const autoprefixer      = require('autoprefixer');
@@ -105,7 +102,7 @@ const sourcemaps        = require('gulp-sourcemaps');
 const gulpif            = require('gulp-if');
 
 const watch             = require('gulp-watch');
-const livereload        = require('gulp-livereload');
+
 
 const del               = require('del');
 
@@ -219,9 +216,6 @@ gulp.task('dist:css', function() {
         .pipe(gulp.dest(options.destination_folder+'/css/')).on('end', function() {
             gutil.log('Source -> Dist Concat');
         })
-
-        // Reload
-        .pipe(livereload());
 });
 
 // Build distribution html file
