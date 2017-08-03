@@ -118,6 +118,9 @@ const gutil             = require('gulp-util');
 const chalk             = require('chalk');
 const htmlmin           = require('gulp-htmlmin');
 
+// Allow to run one task after another
+const runSequence       = require('run-sequence');
+
 // Paths
 let paths = {
     scss: 'src/scss/**/*',
@@ -174,7 +177,6 @@ gulp.task('html', function(){
 // Churn deeze images
 gulp.task('rs-img', function () {
     var dest = options.source_folder+'/images';
-
     return gulp.src(paths.scale)
         // cachename can be anything, does not need to be rs-img
         .pipe(changed(paths.images))
@@ -189,14 +191,23 @@ gulp.task('rs-img', function () {
 // Distribution Tasks
 //--------------------------------------------------//
 
-gulp.task('dist_js', function() {
+// Compress images from prod to dist
+gulp.task('dist:compress', function() {
+    return gulp.src(paths.images+'**/*')
+        .pipe(changed(options.destination_folder+'/images'))
+        .pipe(imagemin())
+        .pipe(gulp.dest(options.destination_folder+'/images'))
+});
+
+// Build distribution javascript
+gulp.task('dist:js', function() {
     return gulp.src(options.source_folder+'/js/'+options.js_concat_name)
         .pipe(uglify())
         .pipe(gulp.dest(options.destination_folder+'/js/'));
 });
 
-
-gulp.task('dist_css', function() {
+// Build distribution css
+gulp.task('dist:css', function() {
     return gulp.src(options.source_folder+'/css/**/*.css')
         // Css concatination
         .pipe(concat(options.main_css_file))
@@ -213,7 +224,8 @@ gulp.task('dist_css', function() {
         .pipe(livereload());
 });
 
-gulp.task('dist_html', function(){
+// Build distribution html file
+gulp.task('dist:html', function(){
     return gulp.src(options.source_folder+'/**/*.html')
         .pipe(gulpif(options.enable_htmlmin, htmlmin(options.htmlmin)))
         .pipe(gulp.dest(options.destination_folder+'/'));
@@ -239,11 +251,21 @@ gulp.task('build:clear', function() {
     return gulpif(options.source_folder !== 'src', del([options.source_folder+'**/*', options.source_folder, options.destination_folder+'**/*', options.destination_folder]));
 });
 
-gulp.task('build:source', ['scss', 'js', 'html']);
-gulp.task('default', ['watch', 'build:source']);
+
+gulp.task('build:source', ['scss', 'js', 'html', 'rs-img']);
 
 // Distribution task
-gulp.task('build:dist', ['default', 'dist_css', 'dist_html', 'dist_js']);
+gulp.task('build:dist', function() {
+    runSequence('build:source', 'dist:css', 'dist:html', 'dist:js', 'dist:compress', function() {
+        gutil.log(chalk.bold.green('Your Project is now ready for the web!'));
+    });
+});
+
+// Build all
+gulp.task('build', ['build:source', 'build:dist']);
+
+// Default task, run on $ Gulp
+gulp.task('default', ['watch', 'build:source']);
 
 const green = chalk.green;
 const bold = chalk.bold.green;
@@ -262,8 +284,15 @@ gulp.task('help', function () {
                    |___/                       |___/
 
 
+    ${green('$ gulp')}
+
+    ${green('$ gulp help')}
+        this message
 
     ${bold('build: [source|dist|clear]')}
+
+    ${green('$ gulp build')}
+        Build Source and Dist
 
     ${green('$ gulp build:source')}
         Build a production enviorment for the project.
@@ -277,14 +306,39 @@ gulp.task('help', function () {
     ${green('$ gulp build:clear')}
         will delete both distribution and production enviorments.
 
-    ${bold('Single actions:')}
+    ${bold('Single actions Production:')}
+
+    ${green('$ gulp scss')}
+        Compile and concat scss
+
+    ${green('$ gulp js')}
+        Compile and concat js to `+options.source_folder+`/js/`+options.js_concat_name+`
+
+    ${green('$ gulp html')}
+        Send src/*.html to `+options.source_folder+`/*.html
 
     ${green('$ gulp rs-img')}
         will compile compressed versions of all files under scale/images/**
         works with jpg,png and gif
 
     ${green('$ gulp img')}
-        Alias of rs-img
+        Alias of $ gulp rs-img
+
+    ${bold('Single actions Distribution:')}
+
+    ${green('$ gulp dist:compress')}
+        Compress images from Production to `+options.destination_folder+`/
+
+    ${green('$ gulp dist:html')}
+        Compress html to `+options.destination_folder+`/
+
+    ${green('$ gulp dist:css')}
+        Compress scss/css to `+options.destination_folder+`/css/`+options.main_css_file+`
+
+    ${green('$ gulp dist:js')}
+        Compress and concat js to `+options.destination_folder+`/js/`+options.js_concat_name+`
+
+
     `);
 
 });

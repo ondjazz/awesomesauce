@@ -1,1 +1,0 @@
-var hei = 'test.js';
