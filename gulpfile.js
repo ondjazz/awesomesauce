@@ -100,6 +100,7 @@ const autoprefixer      = require('autoprefixer');
 const cssnano           = require('gulp-cssnano');
 const sourcemaps        = require('gulp-sourcemaps');
 const gulpif            = require('gulp-if');
+const babel             = require('gulp-babel');
 
 const watch             = require('gulp-watch');
 
@@ -162,6 +163,7 @@ gulp.task('scss', function() {
 
 gulp.task('js', function() {
     return gulp.src(gulpif(options.js_concat_all, paths.js+'.js', options.js_concat_some))
+        .pipe(babel())
         .pipe(concat(options.js_concat_name))
         .pipe(gulp.dest(options.source_folder+'/js/'));
 });
