@@ -101,6 +101,9 @@ const cssnano           = require('gulp-cssnano');
 const sourcemaps        = require('gulp-sourcemaps');
 const gulpif            = require('gulp-if');
 const babel             = require('gulp-babel');
+// Tap into the file from gulp.src
+const tap               = require('gulp-tap');
+const path               = require('path');
 
 const watch             = require('gulp-watch');
 
@@ -127,6 +130,11 @@ let paths = {
     scale: 'src/scale/images/**/*',
     images: options.source_folder+'/images/'
 };
+
+// Colors
+
+const green = chalk.green;
+const bold = chalk.bold.green;
 
 //--------------------------------------------------//
 // Production Tasks
@@ -161,9 +169,20 @@ gulp.task('scss', function() {
 });
 
 
+function js_min_name(file, t) {
+    // Skip min files from babel
+    let name = path.basename(file.path);
+    if(!name.match(/\.min\.js/)){
+        return gulp.src(file.path + "/**/*.js")
+            .pipe(babel())
+    }
+    gutil.log(bold('[Babel]: ') + green('skipping ' + name));
+}
+
+// todo: each dir in /js/ will be concat to /foldername.js
 gulp.task('js', function() {
     return gulp.src(gulpif(options.js_concat_all, paths.js+'.js', options.js_concat_some))
-        .pipe(babel())
+        .pipe(tap(js_min_name))
         .pipe(concat(options.js_concat_name))
         .pipe(gulp.dest(options.source_folder+'/js/'));
 });
@@ -263,8 +282,6 @@ gulp.task('build', ['build:source', 'build:dist']);
 // Default task, run on $ Gulp
 gulp.task('default', ['watch', 'build:source']);
 
-const green = chalk.green;
-const bold = chalk.bold.green;
 gulp.task('help', function () {
     gutil.log(`
 
